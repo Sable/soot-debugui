@@ -35,7 +35,6 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 			ILaunch launch, IProgressMonitor monitor) throws CoreException {
 		
 		
-		
 		/*
 		String analysisProjectName = configuration.getAttribute(HerosLaunchConstants.PROJ_NAME_ID, "");
 		analysisMainClass = configuration.getAttribute(HerosLaunchConstants.MAIN_CLASS_ID, "");
