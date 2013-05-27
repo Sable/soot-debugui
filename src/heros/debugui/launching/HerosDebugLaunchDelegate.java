@@ -33,13 +33,19 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 	@Override
 	public void launch(ILaunchConfiguration configuration, String mode,
 			ILaunch launch, IProgressMonitor monitor) throws CoreException {
+		
+		
+		
+		/*
 		String analysisProjectName = configuration.getAttribute(HerosLaunchConstants.PROJ_NAME_ID, "");
 		analysisMainClass = configuration.getAttribute(HerosLaunchConstants.MAIN_CLASS_ID, "");
 		
 		IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(analysisProjectName);
 		analysisProject = JavaCore.create(project);
 		
-		super.launch(configuration, "run", launch, monitor);
+		*/
+		
+		//super.launch(configuration, "run", launch, monitor);
 	}
 	
 	public String getProgramArguments(ILaunchConfiguration configuration) throws CoreException {
