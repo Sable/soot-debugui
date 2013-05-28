@@ -16,7 +16,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jdt.launching;bundle-version="3.6.1",
  org.eclipse.jdt.core
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Import-Package: org.eclipse.debug.ui,
  org.eclipse.jdt.core,
  org.eclipse.jdt.internal.core,
@@ -24,4 +24,6 @@ Import-Package: org.eclipse.debug.ui,
  org.eclipse.ui.ide
 Export-Package: heros.debugui
 Bundle-ClassPath: heros.jar,
- .
+ .,
+ ServerApplication.jar,
+ ClientApplication.jar

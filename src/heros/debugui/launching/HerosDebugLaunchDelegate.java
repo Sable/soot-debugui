@@ -1,10 +1,12 @@
 package heros.debugui.launching;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +24,8 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.launching.JavaLaunchDelegate;
 
+import connection.ConnectionListener;
+
 public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 
 	private IJavaProject analysisProject;
@@ -29,10 +33,37 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 
 	public HerosDebugLaunchDelegate() {
 	}
+	
+	private void initServer() throws IOException{
+		new ConnectionListener(0);
+		
+	}
+	
+	private String[] generateCommand(ILaunchConfiguration configuration){
+		return new String[]{"localHost", "1337"};
+	}
+	
+	private void runClient(String[] command) throws UnknownHostException, IOException{
+		client.Main.main(command);
+	}
 
 	@Override
 	public void launch(ILaunchConfiguration configuration, String mode,
 			ILaunch launch, IProgressMonitor monitor) throws CoreException {
+		try{
+			initServer();
+			String[] command = generateCommand(configuration);
+			Thread.yield();
+			runClient(command);
+		} catch (UnknownHostException e){
+			System.err.println("Couldn't connect to the server");
+		} catch (IOException e){
+			System.err.println("Couldn't start the server");
+			return;
+		}
+		
+		
+		
 		
 		
 		/*

@@ -4,5 +4,7 @@
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry excluding="de/ishuo/sourcepainter/|de/ishuo/sourcepainter/handler/" kind="src" path="src"/>
 	<classpathentry kind="lib" path="heros.jar" sourcepath="/heros"/>
+	<classpathentry kind="lib" path="ServerApplication.jar"/>
+	<classpathentry kind="lib" path="ClientApplication.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
