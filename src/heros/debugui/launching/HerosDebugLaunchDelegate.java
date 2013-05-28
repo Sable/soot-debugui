@@ -10,6 +10,8 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
+import library.LibraryManager;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -35,12 +37,58 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 	}
 	
 	private void initServer() throws IOException{
-		new ConnectionListener(0);
+		
+		//TODO zum test
+		LibraryManager.getInstance().addLibrary("soot", "/home/aura/workspace/ServerApplikation/lib/soot-2.5.0.jar");
+		LibraryManager.getInstance().addLibrary("java", "/usr/lib/jvm/java-7-openjdk-amd64/jre/lib/rt.jar");
+		
+		new Thread(new ConnectionListener(1337)).start();
 		
 	}
 	
-	private String[] generateCommand(ILaunchConfiguration configuration){
-		return new String[]{"localHost", "1337"};
+	private String[] generateCommand(ILaunchConfiguration configuration) throws CoreException{
+		
+		String userDir = System.getProperty("user.dir");
+		
+		String path = getProgramArguments(configuration).split(":")[0];
+		path = path.substring(4) + configuration.getAttribute(HerosLaunchConstants.MAIN_CLASS_ID, "").replace(".", "/");
+		path = path.substring(userDir.length()+1);
+		
+		String analysisProjectName = configuration.getAttribute(HerosLaunchConstants.PROJ_NAME_ID, "");
+		analysisMainClass = configuration.getAttribute(HerosLaunchConstants.MAIN_CLASS_ID, "");
+		
+		//String file = analysisProjectName + File.separator + analysisMainClass;
+		
+		StringBuilder command = new StringBuilder();
+		
+		String arguments = getProgramArguments(configuration);
+		arguments = arguments.substring(0, arguments.length()-1);
+		
+		command.append("<command>");
+		command.append("javac ");
+		command.append(getProgramArguments(configuration));
+		command.append("<file>");
+		command.append(path +".java");
+		command.append("</file>");
+		command.append("</command>");
+		command.append("<resultFile>");
+		command.append(path +".class");
+		command.append("</resultFiles>");
+		
+		
+		/*
+		command.append("<command>java -cp <library>soot</library>  soot.Main -cp .:<library>java</library> ");
+		command.append(file);
+		command.append("</command><file>");
+		command.append(file + ".java");
+		command.append("</file><resultFile>sootOutput/");
+		command.append(file+ ".class");
+		command.append("</resultFile>");
+		*/
+		
+		//command.append(configuration.getAttribute(HerosLaunchConstants.PROJ_NAME_ID, ""));
+		
+		return new String[]{"localHost", "1337", command.toString()};
 	}
 	
 	private void runClient(String[] command) throws UnknownHostException, IOException{
@@ -50,17 +98,30 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 	@Override
 	public void launch(ILaunchConfiguration configuration, String mode,
 			ILaunch launch, IProgressMonitor monitor) throws CoreException {
+		
+		String analysisProjectName = configuration.getAttribute(HerosLaunchConstants.PROJ_NAME_ID, "");
+		analysisMainClass = configuration.getAttribute(HerosLaunchConstants.MAIN_CLASS_ID, "");
+		
+		IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(analysisProjectName);
+		analysisProject = JavaCore.create(project);
+		
+		
 		try{
 			initServer();
 			String[] command = generateCommand(configuration);
 			Thread.yield();
 			runClient(command);
+		} catch (CoreException e){
+			System.err.println("Couldn't assemble neccessary informations");
+			return;
 		} catch (UnknownHostException e){
 			System.err.println("Couldn't connect to the server");
+			return;
 		} catch (IOException e){
 			System.err.println("Couldn't start the server");
 			return;
 		}
+		
 		
 		
 		
@@ -81,7 +142,7 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 	public String getProgramArguments(ILaunchConfiguration configuration) throws CoreException {
 		String originalMainClass = super.getMainTypeName(configuration);
 		String cp = classPathOfAnalyzedProjectAsString(configuration);
-		return "-cp " + cp + " " + originalMainClass;
+		return "-cp " + cp + " ";// + originalMainClass;
 	}
 	
 	@Override

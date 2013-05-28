@@ -26,4 +26,5 @@ Export-Package: heros.debugui
 Bundle-ClassPath: heros.jar,
  .,
  ServerApplication.jar,
- ClientApplication.jar
+ ClientApplication.jar,
+ soot-2.5.0.jar
