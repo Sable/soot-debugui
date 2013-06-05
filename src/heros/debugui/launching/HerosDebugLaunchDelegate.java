@@ -32,6 +32,12 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 
 	private IJavaProject analysisProject;
 	private String analysisMainClass;
+	
+	//TODO nur zum test
+	private final String sinks  = "--sink soot.jimple.infoflow.test.android.ConnectionManager: void publish(java.lang.String)%soot.jimple.infoflow.test.android.ConnectionManag: void publish(int)";
+	private final String source = "--source soot.jimple.infoflow.test.android.TelephonyManager: java.lang.String getDeviceId()%soot.jimple.infoflow.test.android.AccountManager: java.lang.String getPassword()%soot.jimple.infoflow.test.android.AccountManager: java.lang.String[] getUserData(java.lang.String)"; 
+	private String classPath = "--cp /home/aura/git/soot-infoflow/bin";
+	private String ep = "--eps soot.jimple.infoflow.test.ArrayTestCode: void concreteWriteReadSamePosTest()";
 
 	public HerosDebugLaunchDelegate() {
 	}
@@ -41,6 +47,9 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 		//TODO zum test
 		LibraryManager.getInstance().addLibrary("soot", "/home/aura/workspace/ServerApplikation/lib/soot-2.5.0.jar");
 		LibraryManager.getInstance().addLibrary("java", "/usr/lib/jvm/java-7-openjdk-amd64/jre/lib/rt.jar");
+		LibraryManager.getInstance().addLibrary("soot-finoflow", "/home/aura/lib/soot-infoflow.jar");
+		
+		
 		
 		new Thread(new ConnectionListener(1337)).start();
 		
@@ -64,6 +73,7 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 		String arguments = getProgramArguments(configuration);
 		arguments = arguments.substring(0, arguments.length()-1);
 		
+		/*
 		command.append("<command>");
 		command.append("javac ");
 		command.append(getProgramArguments(configuration));
@@ -74,6 +84,18 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 		command.append("<resultFile>");
 		command.append(path +".class");
 		command.append("</resultFiles>");
+		*/
+		
+		command.append("<command>");
+		command.append("java -cp <library>soot-finoflow</library> ");
+		command.append("soot.jimple.infoflow.test.junit.Main ");
+		command.append(sinks +" ");
+		command.append(source +" ");
+		command.append(ep +" ");
+		command.append(classPath);
+		
+		command.append("</command>");
+		
 		
 		
 		/*
