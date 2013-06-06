@@ -20,7 +20,8 @@ public class HerosLocalJavaApplicationTabGroup extends LocalJavaApplicationTabGr
 				new JavaJRETab(),
 				new JavaClasspathTab(),
 				new SourceLookupTab(),
-				new CommonTab()
+				new CommonTab(),
+				new OptionTab()
 			};
 			setTabs(tabs);
 	}

@@ -1,5 +1,8 @@
 package heros.debugui.launching;
 
+import heros.debugui.Option;
+import heros.debugui.exception.WrongAddressFormatException;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -51,11 +54,11 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 		
 		
 		
-		new Thread(new ConnectionListener(1337)).start();
+		new Thread(new ConnectionListener(Integer.valueOf(Option.LOCAL_ADDRESS.split(":")[1]))).start();
 		
 	}
 	
-	private String[] generateCommand(ILaunchConfiguration configuration) throws CoreException{
+	private String[] generateCommand(ILaunchConfiguration configuration) throws CoreException, WrongAddressFormatException{
 		
 		String userDir = System.getProperty("user.dir");
 		
@@ -110,7 +113,13 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 		
 		//command.append(configuration.getAttribute(HerosLaunchConstants.PROJ_NAME_ID, ""));
 		
-		return new String[]{"localHost", "1337", command.toString()};
+		String[] address = Option.getInstance().getAddress().split(":");
+		
+		if(address.length != 2) throw new WrongAddressFormatException();
+		
+		if(!address[1].equals("0") && !address[1].matches("[1-9][0-9]*")) throw new WrongAddressFormatException();
+		
+		return new String[]{address[0], address[1], command.toString()};
 	}
 	
 	private void runClient(String[] command) throws UnknownHostException, IOException{
@@ -129,7 +138,8 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 		
 		
 		try{
-			initServer();
+			if(Option.getInstance().getAddress().equals(Option.LOCAL_ADDRESS)) initServer();
+			
 			String[] command = generateCommand(configuration);
 			Thread.yield();
 			runClient(command);
@@ -142,6 +152,8 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 		} catch (IOException e){
 			System.err.println("Couldn't start the server");
 			return;
+		} catch (WrongAddressFormatException e) {
+			System.err.println("Wrong address format. ADDRESS:PORT");
 		}
 		
 		
