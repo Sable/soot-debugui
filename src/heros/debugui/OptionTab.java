@@ -6,15 +6,20 @@ import org.eclipse.debug.internal.ui.IDebugHelpContextIds;
 import org.eclipse.debug.internal.ui.SWTFactory;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.List;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
 
@@ -26,11 +31,15 @@ import org.eclipse.ui.PlatformUI;
  */
 @SuppressWarnings("restriction")
 public final class OptionTab extends AbstractLaunchConfigurationTab {
-
-
+	
+	private static final String SERVER_SETTINGS_TITLE = "Server Settings";
+	private static final String LOCAL_RADIO_BUTTON_TEXT= "Local Server";
+	private static final String SHARED_RADIO_BUTTON_TEXT= "Server Address";
 	private Button fLocalRadioButton;
 	private Button fSharedRadioButton;
 	private Text fSharedLocationText;
+	
+	private static final String SOURCE_SETTINGS_TITLE = "Source Settings";
 
 	private ModifyListener fBasicModifyListener = new ModifyListener() {
 
@@ -50,15 +59,27 @@ public final class OptionTab extends AbstractLaunchConfigurationTab {
 		comp.setLayout(new GridLayout(2, true));
 		comp.setFont(parent.getFont());
 		createSharedConfigComponent(comp);
+		createSourceConfig(comp);
 	}
 	
+	private void createSourceConfig(Composite parent) {
+		
+		Group group = SWTFactory.createGroup(parent, SOURCE_SETTINGS_TITLE, 1, 2,GridData.FILL_HORIZONTAL);
+		//Composite composite = SWTFactory.createComposite(group, parent.getFont(), 1,2, GridData.FILL_HORIZONTAL, 0, 0);
+		
+		 SourceComposite source = new SourceComposite(group, SWT.NONE);
+		
+		
+		
+	}
+
 	private void createSharedConfigComponent(Composite parent) {
 		
-		Group group = SWTFactory.createGroup(parent, "Server Settings", 3, 2,GridData.FILL_HORIZONTAL);
+		Group group = SWTFactory.createGroup(parent, SERVER_SETTINGS_TITLE, 3, 2,GridData.FILL_HORIZONTAL);
 		Composite comp = SWTFactory.createComposite(group, parent.getFont(), 3,3, GridData.FILL_BOTH, 0, 0);
 
 		// SetLocal
-		fLocalRadioButton = createRadioButton(comp, "Local Server");
+		fLocalRadioButton = createRadioButton(comp, LOCAL_RADIO_BUTTON_TEXT);
 		fLocalRadioButton.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent evt) {
 				setSharedEnabled(false);
@@ -71,7 +92,7 @@ public final class OptionTab extends AbstractLaunchConfigurationTab {
 		fLocalRadioButton.setLayoutData(gd);
 
 		// notLocal
-		fSharedRadioButton = createRadioButton(comp, "Server Address");
+		fSharedRadioButton = createRadioButton(comp, SHARED_RADIO_BUTTON_TEXT);
 		fSharedRadioButton.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent evt) {
 				setSharedEnabled(true);
