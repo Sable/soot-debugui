@@ -38,10 +38,10 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 	private String analysisMainClass;
 	
 	//TODO nur zum test
-	private final String sinks  = "--sink soot.jimple.infoflow.test.android.ConnectionManager: void publish(java.lang.String)%soot.jimple.infoflow.test.android.ConnectionManag: void publish(int)";
-	private final String source = "--source soot.jimple.infoflow.test.android.TelephonyManager: java.lang.String getDeviceId()%soot.jimple.infoflow.test.android.AccountManager: java.lang.String getPassword()%soot.jimple.infoflow.test.android.AccountManager: java.lang.String[] getUserData(java.lang.String)"; 
-	private String classPath = "--cp /home/aura/git/soot-infoflow/bin";
-	private String ep = "--eps soot.jimple.infoflow.test.ArrayTestCode: void concreteWriteReadSamePosTest()";
+	//private final String sinks  = "--sink soot.jimple.infoflow.test.android.ConnectionManager: void publish(java.lang.String)%soot.jimple.infoflow.test.android.ConnectionManag: void publish(int)";
+	//private final String source = "--source soot.jimple.infoflow.test.android.TelephonyManager: java.lang.String getDeviceId()%soot.jimple.infoflow.test.android.AccountManager: java.lang.String getPassword()%soot.jimple.infoflow.test.android.AccountManager: java.lang.String[] getUserData(java.lang.String)"; 
+	//private String classPath = "--cp /home/aura/git/soot-infoflow/bin";
+	//private String ep = "--eps soot.jimple.infoflow.test.ArrayTestCode: void concreteWriteReadSamePosTest()";
 
 	public HerosDebugLaunchDelegate() {
 	}
@@ -51,7 +51,7 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 		//TODO zum test
 		LibraryManager.getInstance().addLibrary("soot", "/home/aura/workspace/ServerApplikation/lib/soot-2.5.0.jar");
 		LibraryManager.getInstance().addLibrary("java", "/usr/lib/jvm/java-7-openjdk-amd64/jre/lib/rt.jar");
-		LibraryManager.getInstance().addLibrary("soot-finoflow", "/home/aura/lib/soot-infoflow.jar");
+		LibraryManager.getInstance().addLibrary("soot-finoflow-android", "/home/aura/lib/soot-infoflow-android.jar");
 		
 		ConnectionListener listener = new ConnectionListener(Integer.valueOf(Option.LOCAL_ADDRESS.split(":")[1]));
 		new Thread(listener).start();
@@ -67,6 +67,8 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 	 */
 	private String[] generateCompileCommand(ILaunchConfiguration configuration) throws CoreException, WrongAddressFormatException{
 		
+		
+		
 		String[] address = Option.getInstance().getAddress().split(":");
 		
 		if(address.length != 2) throw new WrongAddressFormatException();
@@ -79,6 +81,17 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 		String path = getProgramArguments(configuration).split(":")[0];
 		path = path.substring(4, path.lastIndexOf(analysisProjectName)+analysisProjectName.length()+1);
 		
+		String classPath = getProgramArguments(configuration).split(":")[0].substring(4).replace(userDir + File.separator, "");
+		
+		String destination = classPath.substring(0, classPath.lastIndexOf(analysisProjectName)+ analysisProjectName.length()) +File.separator +"bin";
+		
+		new File(destination).mkdirs();
+		try {
+			new File(destination+File.separator+"temp").createNewFile();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 				
 		List<String> list = FolderSearcher.listFiles(path);
 		
@@ -90,16 +103,16 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 		for(String element : fileList)
 			System.out.println(element);
 		
-		String classPath = getProgramArguments(configuration).split(":")[0].substring(4).replace(userDir + File.separator, "");
+		
 		
 		System.out.println(classPath+getMainTypeName(configuration).replace(".", File.separator)+".java");
 		
-		fileList.add("<command>javac -cp "+classPath +" " +classPath+getMainTypeName(configuration).replace(".", File.separator)+".java" +"</command>");
+		fileList.add("<command>javac -cp "+classPath +" " +"-d "+destination +" "+classPath+getMainTypeName(configuration).replace(".", File.separator)+".java" +"</command>");
 		
 		StringBuilder builder = new StringBuilder();
 		
 		for(String element : fileList)
-			builder.append(element);
+			builder.append(element); 
 		
 		
 		return new String[]{address[0], address[1], builder.toString()};
@@ -122,6 +135,10 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 		path = path.substring(userDir.length()+1);
 		
 		analysisMainClass = configuration.getAttribute(HerosLaunchConstants.MAIN_CLASS_ID, "");
+		String analysisProjectName = configuration.getAttribute(HerosLaunchConstants.PROJ_NAME_ID, "");
+		String classPath = getProgramArguments(configuration).split(":")[0].substring(4).replace(userDir + File.separator, "");
+		
+		String destination = classPath.substring(0, classPath.lastIndexOf(analysisProjectName)+ analysisProjectName.length()) +File.separator +"bin";
 		
 		StringBuilder command = new StringBuilder();
 		
@@ -129,13 +146,11 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 		arguments = arguments.substring(0, arguments.length()-1);
 		
 		command.append("<command>");
-		command.append("java -cp <library>soot-finoflow</library> ");
-		command.append("soot.jimple.infoflow.test.junit.Main ");
-		command.append(sinks +" ");
-		command.append(source +" ");
-		command.append(ep +" ");
-		command.append(classPath);
-		
+		command.append("java -cp <library>soot-finoflow-android</library> ");
+		command.append("soot.jimple.infoflow.android.TestApps.Main ");
+		command.append(destination);
+		command.append(" ");
+		command.append(analysisMainClass);
 		command.append("</command>");
 		
 		String[] address = Option.getInstance().getAddress().split(":");
