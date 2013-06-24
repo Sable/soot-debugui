@@ -40,7 +40,7 @@ public class EdgeDrawing {
 	private void drawEdge(SerializableEdgeData edge) {
 		IPath path;
 		try {
-			path = javaProject.findType(edge.className).getPath();
+			path = javaProject.findType(/*edge.className*/ "test.Hello").getPath();
 			IFile file = (IFile) ResourcesPlugin.getWorkspace().getRoot().findMember(path);
 			String osString = file.getLocation().toOSString();
 			SourcePainterRegistry.registerArrow(osString, edge.startLine, edge.startColumn, edge.endLine, edge.endColumn);
@@ -48,13 +48,13 @@ public class EdgeDrawing {
 			e.printStackTrace();
 		}
 	}
-
+//TODO
 	private void openEditorAndJumpToLine(final SerializableEdgeData edge) {
 		Display.getDefault().asyncExec(new Runnable() {			
 			@Override
 			public void run() {
 				try {
-					String className = edge.className;
+					String className = /*edge.className*/ "test.Hello";
 					IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 					IPath path = javaProject.findType(className).getPath();
 					IFile file = (IFile) ResourcesPlugin.getWorkspace().getRoot().findMember(path);

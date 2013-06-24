@@ -72,8 +72,8 @@ public class EditorPaintListener implements PaintListener {
 				int isRightwards = (column2 - column1 >= 0) ? 1 : -1;
 	
 				// Get start and end points of the arrow
-				int startOffset = getOffset(line1, column1, true);
-				int endOffset = getOffset(line2, column2, true);
+				int startOffset = getOffset(line1, column1, false);
+				int endOffset = getOffset(line2, column2, false);
 	
 				// Remove invalid arrows
 				if (startOffset < 0 || endOffset < 0) {

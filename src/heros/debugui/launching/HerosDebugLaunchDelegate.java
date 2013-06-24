@@ -6,6 +6,7 @@ import heros.debugui.exception.WrongAddressFormatException;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -15,6 +16,8 @@ import java.util.LinkedList;
 import java.util.List;
 import library.LibraryManager;
 import heros.debugui.IO.FolderSearcher;
+import io.FileIO;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -29,6 +32,13 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.launching.JavaLaunchDelegate;
 
+import protocol.Protocol;
+import protocol.phase.TransmitLibaryPhase;
+
+import command.CommandFactory;
+import command.GeneralCommand;
+
+import connection.Connection;
 import connection.ConnectionListener;
 
 public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
@@ -36,21 +46,16 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 
 	private IJavaProject analysisProject;
 	private String analysisMainClass;
+	//private Socket connection;
 	
-	//TODO nur zum test
-	//private final String sinks  = "--sink soot.jimple.infoflow.test.android.ConnectionManager: void publish(java.lang.String)%soot.jimple.infoflow.test.android.ConnectionManag: void publish(int)";
-	//private final String source = "--source soot.jimple.infoflow.test.android.TelephonyManager: java.lang.String getDeviceId()%soot.jimple.infoflow.test.android.AccountManager: java.lang.String getPassword()%soot.jimple.infoflow.test.android.AccountManager: java.lang.String[] getUserData(java.lang.String)"; 
-	//private String classPath = "--cp /home/aura/git/soot-infoflow/bin";
-	//private String ep = "--eps soot.jimple.infoflow.test.ArrayTestCode: void concreteWriteReadSamePosTest()";
 
 	public HerosDebugLaunchDelegate() {
 	}
 	
-	private ConnectionListener initServer() throws IOException{
+	private ConnectionListener initServer(ILaunchConfiguration configuration) throws IOException, CoreException{
 		
-		//TODO zum test
-		LibraryManager.getInstance().addLibrary("soot", "/home/aura/workspace/ServerApplikation/lib/soot-2.5.0.jar");
-		LibraryManager.getInstance().addLibrary("java", "/usr/lib/jvm/java-7-openjdk-amd64/jre/lib/rt.jar");
+		
+		//TODO aus optionen herauslesen und adden
 		LibraryManager.getInstance().addLibrary("soot-finoflow-android", "/home/aura/lib/soot-infoflow-android.jar");
 		
 		ConnectionListener listener = new ConnectionListener(Integer.valueOf(Option.LOCAL_ADDRESS.split(":")[1]));
@@ -58,65 +63,8 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 		return listener;
 	}
 	
-	/**
-	 * generates a command to transfer the project folder and compile it
-	 * @param configuration
-	 * @return
-	 * @throws CoreException
-	 * @throws WrongAddressFormatException
-	 */
-	private String[] generateCompileCommand(ILaunchConfiguration configuration) throws CoreException, WrongAddressFormatException{
-		
-		
-		
-		String[] address = Option.getInstance().getAddress().split(":");
-		
-		if(address.length != 2) throw new WrongAddressFormatException();
-		
-		if(!address[1].equals("0") && !address[1].matches("[1-9][0-9]*")) throw new WrongAddressFormatException();
-		
-		String userDir = System.getProperty("user.dir");
-		
-		String analysisProjectName = configuration.getAttribute(HerosLaunchConstants.PROJ_NAME_ID, "");
-		String path = getProgramArguments(configuration).split(":")[0];
-		path = path.substring(4, path.lastIndexOf(analysisProjectName)+analysisProjectName.length()+1);
-		
-		String classPath = getProgramArguments(configuration).split(":")[0].substring(4).replace(userDir + File.separator, "");
-		
-		String destination = classPath.substring(0, classPath.lastIndexOf(analysisProjectName)+ analysisProjectName.length()) +File.separator +"bin";
-		
-		new File(destination).mkdirs();
-		try {
-			new File(destination+File.separator+"temp").createNewFile();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-				
-		List<String> list = FolderSearcher.listFiles(path);
-		
-		List<String> fileList = new LinkedList<String>();
-		
-		for(String element : list)
-			fileList.add("<file>" +element.replace(System.getProperty("user.dir") + File.separator, "") +"</file>");
-		
-		for(String element : fileList)
-			System.out.println(element);
-		
-		
-		
-		System.out.println(classPath+getMainTypeName(configuration).replace(".", File.separator)+".java");
-		
-		fileList.add("<command>javac -cp "+classPath +" " +"-d "+destination +" "+classPath+getMainTypeName(configuration).replace(".", File.separator)+".java" +"</command>");
-		
-		StringBuilder builder = new StringBuilder();
-		
-		for(String element : fileList)
-			builder.append(element); 
-		
-		
-		return new String[]{address[0], address[1], builder.toString()};
-	}
+
+
 	
 	
 	/**
@@ -125,8 +73,16 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 	 * @return
 	 * @throws CoreException
 	 * @throws WrongAddressFormatException
+	 * @throws IOException 
+	 * @throws UnknownHostException 
 	 */
-	private String[] generateCommand(ILaunchConfiguration configuration) throws CoreException, WrongAddressFormatException{
+	private String[] generateCommand(ILaunchConfiguration configuration) throws CoreException, WrongAddressFormatException, UnknownHostException, IOException{
+		
+		String[] address = Option.getInstance().getAddress().split(":");
+		
+		if(address.length != 2) throw new WrongAddressFormatException();
+		
+		if(!address[1].equals("0") && !address[1].matches("[1-9][0-9]*")) throw new WrongAddressFormatException();
 		
 		String userDir = System.getProperty("user.dir");
 		
@@ -145,31 +101,64 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 		String arguments = getProgramArguments(configuration);
 		arguments = arguments.substring(0, arguments.length()-1);
 		
+		
+		
+		String[] env = getEnvironment(configuration)[0].split(":");
+		
+		String callIP = env[0];
+		String callPort = env[1];
+		
+		List<String> list = FolderSearcher.listFiles(classPath);
+		
+		for(String file : list){
+			command.append("<file>");
+			command.append(file);
+			command.append("</file>");
+		}
+		
 		command.append("<command>");
 		command.append("java -cp <library>soot-finoflow-android</library> ");
 		command.append("soot.jimple.infoflow.android.TestApps.Main ");
-		command.append(destination);
-		command.append(" ");
 		command.append(analysisMainClass);
+		command.append(" ");
+		command.append(classPath);
+		command.append(" ");
+		command.append(callIP);
+		command.append(" ");
+		command.append(callPort);
 		command.append("</command>");
 		
-		String[] address = Option.getInstance().getAddress().split(":");
 		
-		if(address.length != 2) throw new WrongAddressFormatException();
-		
-		if(!address[1].equals("0") && !address[1].matches("[1-9][0-9]*")) throw new WrongAddressFormatException();
 		
 		
 		return new String[]{address[0], address[1], command.toString()};
 	}
 	
-	private void runClient(String[] command) throws UnknownHostException, IOException{
-		client.Main.main(command);
+	private void runClient(String[] args) throws UnknownHostException, IOException{
+		
+//		if(args.length != 3) {
+//			System.out.println("Wrong number of arguments");
+//			System.exit(1);
+//		}
+//		
+//		
+//		Connection con = new Connection(connection);
+//		
+//		GeneralCommand c = new CommandFactory(/*correctCommand2*/ args[2]).generate();
+//		
+//		Protocol p = new Protocol(new TransmitLibaryPhase(c), con, new FileIO());
+//		
+//		while(!p.isFinished())
+//			p.handle();
+		
+		client.Main.main(args);
 	}
 
 	@Override
 	public void launch(ILaunchConfiguration configuration, String mode,
 			ILaunch launch, IProgressMonitor monitor) throws CoreException {
+		
+		//getEnvironment(configuration);
 		
 		String analysisProjectName = configuration.getAttribute(HerosLaunchConstants.PROJ_NAME_ID, "");
 		analysisMainClass = configuration.getAttribute(HerosLaunchConstants.MAIN_CLASS_ID, "");
@@ -183,15 +172,12 @@ public class HerosDebugLaunchDelegate extends JavaLaunchDelegate {
 			//check if server destination is local and start a local server if needed
 			ConnectionListener listener = null;
 			if(Option.getInstance().getAddress().equals(Option.LOCAL_ADDRESS)){
-				listener = initServer();
+				listener = initServer(configuration);
 				Thread.yield();
 			}
-			//Transfer Project and compile it.
-			String[] command = generateCompileCommand(configuration);
-			runClient(command);
 			
 			//analyse compiled project
-			command  = generateCommand(configuration);
+			String [] command  = generateCommand(configuration);
 			runClient(command);
 			
 			//if Server has been started close it
