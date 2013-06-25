@@ -13,7 +13,9 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
@@ -54,8 +56,15 @@ public class EdgeDrawing {
 			@Override
 			public void run() {
 				try {
+	
 					String className = /*edge.className*/ "test.Hello";
-					IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+					
+					IWorkbench workbench = PlatformUI.getWorkbench();
+					if(workbench == null) return;
+					IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
+					if(window == null) return;
+					IWorkbenchPage page = window.getActivePage();
+					if(page == null) return;
 					IPath path = javaProject.findType(className).getPath();
 					IFile file = (IFile) ResourcesPlugin.getWorkspace().getRoot().findMember(path);
 					if(file!=null) {
