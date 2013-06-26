@@ -13,9 +13,8 @@ public class AnalyzeAction implements IWorkbenchWindowActionDelegate {
 
 	@Override
 	public void run(IAction action) {
-		DebugUITools.openLaunchConfigurationDialogOnGroup(
-				window.getShell(), new StructuredSelection(),
-				"heros.launchGroups.analyze");
+		DebugUITools.openLaunchConfigurationDialogOnGroup(window.getShell(), new StructuredSelection(),"heros.launchGroups.analyze");
+		System.out.println("AnalyzeAction");
 	}
 
 	@Override

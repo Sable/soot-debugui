@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.Stack;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.widgets.Label;
@@ -69,7 +68,7 @@ public class SourcePainterRegistry {
 		// Create map entry for this file path if it doesn't exist yet
 		if (!arrowsMap.containsKey(path)) {
 			//TODO changed to copy on write array list
-			arrowsMap.put(path, new CopyOnWriteArrayList<SPArrow>());
+			arrowsMap.put(path, new ArrayList<SPArrow>());
 		}
 		
 		// Add the new arrow to its list if it hasn't been in it

@@ -21,6 +21,11 @@ import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 public class ServerSocketManager {
 	
 	public static final String ENV_VAR_NAME = "HEROS_DEBUG_PORT";
+	
+	public static String openSocketAndGetIpAndPort(ILaunchConfiguration configuration){
+		String hostNameAndPort = ServerSocketManager.openSocket(configuration);
+		return hostNameAndPort;
+	}
 
 	public static String[] openSocketAndUpdateEnvironment(
 			ILaunchConfiguration configuration, String[] environment) throws CoreException {
@@ -28,7 +33,7 @@ public class ServerSocketManager {
 		if(environment==null) environment = new String[0];
 		String[] newEnv = new String[environment.length+1];
 		System.arraycopy(environment, 0, newEnv, 1, environment.length);
-		newEnv[0] = /*ENV_VAR_NAME + "="+*/hostNameAndPort;
+		newEnv[0] = ENV_VAR_NAME + "="+hostNameAndPort;
 		return newEnv;
 	}
 
@@ -57,20 +62,24 @@ public class ServerSocketManager {
 						InputStream is = socket.getInputStream();
 						ObjectInputStream ois = new ObjectInputStream(is);
 						String projectName = configuration.getAttribute(IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME, "");
-						EdgeDrawing edgeDrawing = new EdgeDrawing(projectName);
-						EdgeDrawingManager edgeManager = EdgeDrawingManager.getInstance();
-						edgeManager.setEdgeDrawing(edgeDrawing);
+						//EdgeDrawing edgeDrawing = new EdgeDrawing(projectName);
+						//EdgeDrawingManager edgeManager = EdgeDrawingManager.getInstance();
+						//edgeManager.setEdgeDrawing(edgeDrawing);
 						
 						List<List<SerializableEdgeData>> paths = (List<List<SerializableEdgeData>>) ois.readObject();
 						ois.close();
 						System.out.println(paths.size());
 						for(List<SerializableEdgeData> path : paths){
 							
-							edgeManager.addPath(path);
+							//edgeManager.addPath(path);
 						}
+						
+						
 						
 						socket.close();
 						serverSocket.close();
+						
+						System.out.println("Terminate Server");
 						
 					} catch(SocketTimeoutException e) {
 						//ignore; just terminate thread
@@ -87,7 +96,7 @@ public class ServerSocketManager {
 			}.start();
 			//allow other thread to get to the point where we
 			//accept connections on the server socket before we proceed here
-			Thread.yield();
+			//Thread.yield();
 			
 			return host + ":" +port;
 			

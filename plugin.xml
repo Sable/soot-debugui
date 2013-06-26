@@ -108,6 +108,8 @@
       </action>
       <action
             class="heros.debugui.action.AnalyzeAction"
+            hoverIcon=""
+            disabledIcon=""
             icon=""
             id="heros.actions.analyze"
             label="Analyze..."
@@ -117,29 +119,23 @@
       <action
       		id="heros.debugui.AnalyzeHistoryDropDownAction"
             toolbarPath="debug.ext"
-            hoverIcon=""
             class="heros.debugui.action.AnalyzeToolbarAction"
-            disabledIcon=""
-            icon=""
+            icon="icons/start_task.gif"
             label="Analyze"
             style="pulldown">
       </action>
       <action
       		id="heros.debugui.NextFlow"
             toolbarPath="debug.ext"
-            hoverIcon=""
             class="heros.debugui.action.NextFlowToolbarAction"
-            disabledIcon=""
-            icon=""
+            icon="icons/shift_r_edit.gif"
             label="Next FLow">
       </action>
       <action
       		id="heros.debugui.PreviousFlow"
             toolbarPath="debug.ext"
-            hoverIcon=""
             class="heros.debugui.action.PreviousFlowToolbarAction"
-            disabledIcon=""
-            icon=""
+            icon="icons/shift_l_edit.gif"
             label="Previous FLow">
       </action>
      </actionSet>
